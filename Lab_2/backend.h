@@ -55,7 +55,7 @@ public slots:
     void upd_model_qml();
     void get_backup_files();
     void get_name_file(QString namefile);
-
+    void print_all_data();
 };
 
 

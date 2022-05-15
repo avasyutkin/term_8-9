@@ -19,6 +19,11 @@
 #include <openssl/err.h>
 #include <openssl/aes.h>
 #include <openssl/sha.h>
+#include <QImage>
+#include <QPoint>
+#include <QPdfWriter>
+#include <QPainter>
+
 
 using namespace std;
 
@@ -104,34 +109,28 @@ void Backend::get_data(bool is_pass, QString site)
     else if (is_pass==1)
         string_ = object_site["password"].toString();
 
-    unsigned char *cipher_login = qstr_to_unchar(string_),
-            source_login[128];
+    unsigned char *cipher = qstr_to_unchar(string_),
+            source[128];
 
-    crypt_data(cipher_login, source_login, 0, md);
+    crypt_data(cipher, source, 0, md);
 
-    string string__(reinterpret_cast<char*>(source_login));
+    string string__(reinterpret_cast<char*>(source));
 
     toClipboard(string__);
     string__.clear();
+    source[0] = '\0';
 }
 
 
 QString Backend::unchar_to_qstr(char* unchar)
 {
-    string str = string(unchar);
-    auto arr = QByteArray::fromStdString(str);
-    auto qstr = QString::fromLatin1(arr);
-
-    return qstr;
+    return QString::fromLatin1(QByteArray::fromStdString(string(unchar)));
 }
 
 unsigned char* Backend::qstr_to_unchar(QString qstr)
 {
-    auto arr = qstr.toLatin1();
-    auto str = arr.toStdString();
-
     unsigned char* unchar;
-    strcpy((char*)unchar, str.c_str());
+    strcpy((char*)unchar, qstr.toLatin1().toStdString().c_str());
 
     return unchar;
 }
@@ -166,6 +165,9 @@ void Backend::get_new_account(QString data)
 
     json_site.insert("login", unchar_to_qstr((char*)cipher_login));
     json_site.insert("password", unchar_to_qstr((char*)cipher_pass));
+
+    cipher_login[0] = '\0';
+    cipher_pass[0] = '\0';
 
     json.insert(site, json_site);
 
@@ -218,6 +220,68 @@ void Backend::toClipboard(const std::string &s)
     GlobalFree(hg);
 }
 
+void Backend::print_all_data()
+{
+    const QString fileName("C://Users//Alexander//Desktop//stud//Lab_2//file.pdf");
+    QPdfWriter pdfWriter(fileName);
+    pdfWriter.setPageSize(QPageSize(QPageSize::A4));
+
+    QPainter painter(&pdfWriter);
+    painter.setPen(QPen(Qt::black, 2));
+    painter.drawLine(400, 700, 9000, 700);
+
+    QFont font("Times New Roman", 14);
+    painter.setFont(font);
+
+    QString login;
+    QString pass;
+
+    painter.drawText(500, 500, "Ресурс");
+    painter.drawText(3000, 500, "Логин");
+    painter.drawText(6100, 500, "Пароль");
+
+    QJsonArray jsonArray = json["urls"].toArray();
+    for (int i=0; i < jsonArray.count(); i++){
+        int count = i % 24;
+        if (i % 24 == 0 && i != 0){
+            pdfWriter.newPage();
+            painter.drawText(500, 500, "Ресурс");
+            painter.drawText(3000, 500, "Логин");
+            painter.drawText(6100, 500, "Пароль");
+            painter.drawLine(400, 700, 9000, 700);
+        }
+
+        QString site = jsonArray[i].toString();
+        QJsonObject object_site = json[site].toObject();
+
+        login = object_site["login"].toString();
+        unsigned char *cipher_login = qstr_to_unchar(login),
+                source_login[128];
+
+        crypt_data(cipher_login, source_login, 0, md);
+
+        login = unchar_to_qstr((char*)source_login);
+        source_login[0] = '\0';
+
+        pass = object_site["password"].toString();
+        unsigned char *cipher_pass = qstr_to_unchar(pass),
+                source_pass[128];
+
+        crypt_data(cipher_pass, source_pass, 0, md);
+
+        pass = unchar_to_qstr((char*)source_pass);
+        source_pass[0] = '\0';
+
+        painter.drawLine(400, (count+2)*500+175, 9000, (count+2)*500+175);
+
+        painter.drawText(500,(count+2)*500, site);
+        painter.drawText(3000,(count+2)*500, login);
+        painter.drawText(6100,(count+2)*500, pass);
+
+        login.clear();
+        pass.clear();
+    }
+}
 
 
 bool Backend::crypt_data(unsigned char *sourcetext, unsigned char *ciphertext, int do_encrypt, unsigned char* key_user)
@@ -382,153 +446,3 @@ bool Backend::SHA256(unsigned char* input, unsigned long length, unsigned char* 
 
     return true;
 }
-
-
-
-
-
-
-
-
-
-//bool Backend::encrypt_file(unsigned char* key_user){
-
-//    all_data = "";
-//    EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
-
-//    unsigned char * iv = (unsigned char *)("%QkI0j2XwDjpf$644yfm0xY0wBsWkM1h"),
-//            *key = (unsigned char *) (char*) key_user;
-
-//    if(!EVP_EncryptInit_ex(ctx, EVP_aes_256_ofb(), NULL, key, iv))
-//        return false;
-
-//    QString sourcefile = "C://Users//Alexander//Desktop//stud//Lab_2//Data_2.json";
-//    QFile source_file(sourcefile);
-//    source_file.open(QIODevice::ReadOnly);
-
-//    QFile file_modified("C://Users//Alexander//Desktop//stud//Lab_2//Data.json");
-//    file_modified.open(QIODevice::ReadWrite | QIODevice::Truncate);
-
-//    unsigned char ciphertext[256];
-//    unsigned char plaintext[256];
-//    int plaintext_len = source_file.read((char *)plaintext, 256);
-//    int len;
-
-//    while (plaintext_len > 0)
-//    {
-
-//        if(!EVP_EncryptUpdate(ctx, ciphertext, &len, plaintext, plaintext_len))
-//            return false;
-
-//        string all_data_(ciphertext, ciphertext+len);
-//        all_data += all_data_;
-
-
-//        file_modified.write((char*)ciphertext, len);
-//        plaintext_len = source_file.read((char *)plaintext, 256);
-//    }
-
-//    if(!EVP_EncryptFinal_ex(ctx, ciphertext + len, &len))
-//        return false;
-
-
-//    file_modified.write((char*)ciphertext, len);
-//    string all_data_(ciphertext, ciphertext+len);
-//    all_data += all_data_;
-//    EVP_CIPHER_CTX_free(ctx);
-
-
-//    source_file.close();
-//    file_modified.close();
-
-//}
-
-
-//bool Backend::crypt_file(QString key_user, bool mode){
-//    EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
-//    unsigned char md[SHA256_DIGEST_LENGTH]; // 32 bytes
-//    SHA256(reinterpret_cast<unsigned char *>(key_user.toLatin1().data()), key_user.length(), md);
-
-
-//    unsigned char * iv = (unsigned char *)("%QkI0j2XwDjpf$644yfm0xY0wBsWkM1h"),
-//            *key = (unsigned char *) (char*) md;
-
-//    if (mode == 1)
-//    {
-//        if(!EVP_EncryptInit_ex(ctx, EVP_aes_256_ofb(), NULL, key, iv))
-//            return false;
-//    }
-
-//    else if (mode == 0)
-//        if(!EVP_DecryptInit_ex(ctx, EVP_aes_256_ofb(), NULL, key, iv))
-//            return false;
-
-//    QString sourcefile = "C://Users//Alexander//Desktop//stud//Lab_2//Data_encrypt.json";
-//    QFile source_file(sourcefile);
-//    source_file.open(QIODevice::ReadOnly);
-
-//    int position;
-//    position = sourcefile.lastIndexOf(".");
-//    QString file_extension = sourcefile.mid(position);
-//    QString sourcefile_for_if;
-
-//    if (mode == 1)
-//    {
-//        position = sourcefile.lastIndexOf(".");
-//        sourcefile_for_if = sourcefile.left(position) + "_encrypt" + file_extension;
-//    }
-
-//    else if (mode == 0)
-//    {
-//        position = sourcefile.lastIndexOf("_encrypt");
-//        sourcefile_for_if = sourcefile.left(position) + "_decrypt" + file_extension;
-//    }
-
-//    QFile file_modified(sourcefile_for_if);
-//    file_modified.open(QIODevice::ReadWrite | QIODevice::Truncate);
-
-//    unsigned char ciphertext[256];
-//    unsigned char plaintext[256];
-//    int plaintext_len = source_file.read((char *)plaintext, 256);
-//    int len;
-
-//    while (plaintext_len > 0)
-//    {
-//        if (mode == 1)
-//        {
-//            if(!EVP_EncryptUpdate(ctx, ciphertext, &len, plaintext, plaintext_len))
-//                return false;
-//        }
-
-//        else if (mode == 0)
-//            if(!EVP_DecryptUpdate(ctx, ciphertext, &len, plaintext, plaintext_len))
-//                return false;
-//        string all_data_(ciphertext, ciphertext+len);
-//        all_data += all_data_;
-
-
-//        file_modified.write((char*)ciphertext, len);
-//        plaintext_len = source_file.read((char *)plaintext, 256);
-//    }
-
-
-//    if (mode == 1)
-//    {
-//        if(!EVP_EncryptFinal_ex(ctx, ciphertext + len, &len))
-//            return false;
-//    }
-
-//    else if (mode == 0)
-//        if(!EVP_DecryptFinal_ex(ctx, ciphertext + len, &len))
-//            return false;
-
-//    file_modified.write((char*)ciphertext, len);
-//    string all_data_(ciphertext, ciphertext+len);
-//    all_data += all_data_;
-//    EVP_CIPHER_CTX_free(ctx);
-
-
-//    source_file.close();
-//    file_modified.close();
-//}
-

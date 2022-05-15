@@ -50,14 +50,14 @@ int main(int argc, char *argv[])
     //qDebug() << "text_segment_contents:" << Qt::hex << text_segment_contents << "\n";
     qDebug() << "current_hash_base64:" << current_hash_base64 << "\n";
 
-    const QByteArray hash0_base64 = QByteArray("Uq2xwUrbPBVG9EptX0SO2eBywB9QvPA7bLm+N/Y8Ph4=");
+    const QByteArray hash0_base64 = QByteArray("GTC3uWJVzvwq8sTR4fMtZAy4SgM6M07mYfKxTbbMFe4=");
 
-    bool checkresult = (current_hash_base64 == hash0_base64);
-    qDebug() << "checkresult:" << checkresult << "\n";
-        if (!checkresult){
-            int result = QMessageBox::critical(nullptr, "Внимание!", "Приложение модифицировано");
-            return -1;
-        }
+//    bool checkresult = (current_hash_base64 == hash0_base64);
+//    qDebug() << "checkresult:" << checkresult << "\n";
+//        if (!checkresult){
+//            int result = QMessageBox::critical(nullptr, "Внимание!", "Приложение модифицировано");
+//            return -1;
+//        }
 
 
 

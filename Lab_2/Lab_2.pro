@@ -39,7 +39,7 @@ LIBS += -L"C:\Qt\Tools\OpenSSL\Win_x64\lib" -llibssl
 LIBS += -L"C:\Qt\Tools\OpenSSL\Win_x64\lib" -llibcrypto
 
 QT += widgets
-
+QT += printsupport
 
 
 

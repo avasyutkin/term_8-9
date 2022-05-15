@@ -134,7 +134,7 @@ ApplicationWindow {
                 height: 30
                 TextField {
                     id: search_text
-                    width: 300
+                    width: 255
                     height: 30
                     font.family: "SF UI Display Light"
                     placeholderText: qsTr("Найти...")
@@ -152,7 +152,7 @@ ApplicationWindow {
                     font.family: "SF UI Display Light"
                     font.pixelSize: 16
                     onClicked: {
-                        if (Backend.get_new_account_bool(search_text.text)==true){
+                        if (Backend.get_new_account_bool(search_text.text) == true){
                             accountModel.clear();
                             Backend.get_new_account(search_text.text);
                             search_text.text = ""
@@ -179,6 +179,21 @@ ApplicationWindow {
                         search_text.text = ""
                     }
                 }
+
+                Button{
+                    id: button_to_print
+                    height: 30
+                    width: 30
+                    anchors.left: search_text.right
+                    anchors.leftMargin: 90
+                    text: "↓"
+                    font.family: "SF UI Display Light"
+                    font.pixelSize: 16
+                    onClicked: {
+                        Backend.print_all_data()
+                    }
+                }
+
             }
 
             delegate: Row {
