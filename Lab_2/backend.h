@@ -26,11 +26,11 @@ public:
     bool encrypt_file(unsigned char* key_user);
     bool SHA256(unsigned char* input, unsigned long length, unsigned char* md);
     bool decrypt_file(unsigned char* key_user);
-    //bool crypt_file(QString key_user, bool mode);
     QString unchar_to_qstr(char* unchar);
     unsigned char* qstr_to_unchar(QString qstr);
     void data_to_json();
     void backup();
+    void create_filename_backup();
 
 private:
     QJsonObject json;

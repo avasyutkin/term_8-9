@@ -2,6 +2,7 @@ import QtQuick 2.12
 import QtQuick.Window 2.12
 import QtQuick.Controls 2.1
 import SortFilterProxyModel 0.2
+import QtQuick.Dialogs 1.3
 
 ApplicationWindow {
     id: window
@@ -102,8 +103,6 @@ ApplicationWindow {
                 font.pixelSize: 16
                 font.bold: true }
         }
-
-
     }
 
     Page{
@@ -210,9 +209,7 @@ ApplicationWindow {
                         source: "file:///C:/Users/Alexander/Desktop/stud/Lab_2/logovk.png"
                     }
                     onDoubleClicked: {
-                        Backend.delete_account(url)
-                        accountModel.clear(url)
-                        Backend.upd_model_qml()
+                        deleteDialog.visible = true
                     }
                 }
                 Text {
@@ -255,6 +252,19 @@ ApplicationWindow {
                             ToolTip.show("Скопировано", 550)
                             Backend.send_site_to_cpp(1, parent.text)
                         }
+                    }
+                }
+
+                MessageDialog {
+                    id: deleteDialog
+                    title: "Удаление аккаунта"
+                    text: "Действительно хотите удалить аккаунт?"
+                    icon: StandardIcon.Warning
+                    standardButtons: StandardButton.Yes | StandardButton.No
+                    onYes: {
+                        Backend.delete_account(url)
+                        accountModel.clear(url)
+                        Backend.upd_model_qml()
                     }
                 }
             }
@@ -317,7 +327,6 @@ ApplicationWindow {
                     }
                 }
             }
-
         }
     }
 }

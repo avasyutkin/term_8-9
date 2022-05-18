@@ -1,4 +1,6 @@
 QT += quick
+QT += widgets
+QT += printsupport
 
 # You can make your code fail to compile if it uses deprecated APIs.
 # In order to do so, uncomment the following line.
@@ -30,16 +32,12 @@ HEADERS += \
 
 include (C:\Users\Alexander\Desktop\stud\SortFilterProxyModel-master/SortFilterProxyModel.pri)
 
-
-
-
 INCLUDEPATH += C:\Qt\Tools\OpenSSL\Win_x64\include
 LIBS += -L"C:\Qt\Tools\OpenSSL\Win_x64\bin"
 LIBS += -L"C:\Qt\Tools\OpenSSL\Win_x64\lib" -llibssl
 LIBS += -L"C:\Qt\Tools\OpenSSL\Win_x64\lib" -llibcrypto
 
-QT += widgets
-QT += printsupport
+
 
 
 

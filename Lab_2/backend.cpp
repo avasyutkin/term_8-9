@@ -53,7 +53,6 @@ void Backend::get_backup_files()
     emit send_backup_to_qml(files);
 }
 
-
 void Backend::upd_model_qml()
 {
     get_sites();
@@ -61,6 +60,10 @@ void Backend::upd_model_qml()
 
 void Backend::delete_account(QString site)
 {
+    create_filename_backup();
+    backup();
+    sourcefile = "C://Users//Alexander//Desktop//stud//Lab_2//Data.json";
+
     json.remove(site);
 
     QJsonArray jsonArray = json["urls"].toArray();
@@ -72,6 +75,17 @@ void Backend::delete_account(QString site)
     backup();
 }
 
+void Backend::create_filename_backup()
+{
+    sourcefile = "C://Users//Alexander//Desktop//stud//Lab_2//Data.json";
+    int position;
+    position = sourcefile.lastIndexOf("Data.json");
+    QString file_backup_name = sourcefile.left(position) + "history//Data.json";
+    position = file_backup_name.lastIndexOf(".");
+    QString file_extension = file_backup_name.mid(position);
+    file_backup_name = file_backup_name.left(position) + QDateTime::currentDateTime().toString("_dd.MM.yyyy_hh.mm.ss") + file_extension;
+    sourcefile = file_backup_name;
+}
 
 void Backend::get_name_file(QString namefile)
 {
@@ -92,11 +106,10 @@ bool Backend::get_pass(QString pass)
 }
 
 void Backend::backup()
-{
+{ 
     all_data = QJsonDocument(json).toJson(QJsonDocument::Compact).toStdString();
     encrypt_file(md);
 }
-
 
 void Backend::get_data(bool is_pass, QString site)
 {
@@ -121,7 +134,6 @@ void Backend::get_data(bool is_pass, QString site)
     source[0] = '\0';
 }
 
-
 QString Backend::unchar_to_qstr(char* unchar)
 {
     return QString::fromLatin1(QByteArray::fromStdString(string(unchar)));
@@ -135,7 +147,6 @@ unsigned char* Backend::qstr_to_unchar(QString qstr)
     return unchar;
 }
 
-
 bool Backend::get_new_account_bool(QString data)
 {
     QStringList arr_data = data.split(" ");
@@ -148,6 +159,10 @@ bool Backend::get_new_account_bool(QString data)
 
 void Backend::get_new_account(QString data)
 {
+    create_filename_backup();
+    backup();
+    sourcefile = "C://Users//Alexander//Desktop//stud//Lab_2//Data.json";
+
     QStringList arr_data = data.split(" ");
     QString site = arr_data[0];
     QString login = arr_data[1];
@@ -283,7 +298,6 @@ void Backend::print_all_data()
     }
 }
 
-
 bool Backend::crypt_data(unsigned char *sourcetext, unsigned char *ciphertext, int do_encrypt, unsigned char* key_user)
 {
     EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
@@ -331,18 +345,8 @@ bool Backend::crypt_data(unsigned char *sourcetext, unsigned char *ciphertext, i
 
 bool Backend::encrypt_file(unsigned char* key_user)
 {
-    QString file_name = "C://Users//Alexander//Desktop//stud//Lab_2//Data.json";
-    QFile file_modified(file_name);
+    QFile file_modified(sourcefile);
     file_modified.open(QIODevice::ReadWrite | QIODevice::Truncate);
-
-    int position;
-    position = file_name.lastIndexOf("Data.json");
-    QString file_backup_name = file_name.left(position) + "history//Data.json";
-    position = file_backup_name.lastIndexOf(".");
-    QString file_extension = file_backup_name.mid(position);
-    file_backup_name = file_backup_name.left(position) + QDateTime::currentDateTime().toString("_dd.MM.yyyy_hh.mm.ss") + file_extension;
-    QFile file_backup(file_backup_name);
-    file_backup.open(QIODevice::ReadWrite | QIODevice::Truncate);
 
     EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
 
@@ -370,7 +374,6 @@ bool Backend::encrypt_file(unsigned char* key_user)
         sourcetext_len = strlen((char *)all_data.substr(0, 256).c_str());
 
         file_modified.write((char*)ciphertext, len);
-        file_backup.write((char*)ciphertext, len);
     }
 
     ciphertext_len = len;
@@ -387,10 +390,8 @@ bool Backend::encrypt_file(unsigned char* key_user)
     ciphertext[ciphertext_len] = '\0';
 
     file_modified.write((char*)ciphertext, len);
-    file_backup.write((char*)ciphertext, len);
 
     file_modified.close();
-    file_backup.close();
 }
 
 bool Backend::decrypt_file(unsigned char* key_user){
