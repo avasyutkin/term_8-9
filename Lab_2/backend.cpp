@@ -23,6 +23,8 @@
 #include <QPoint>
 #include <QPdfWriter>
 #include <QPainter>
+#include <QPrinter>
+#include <QPrintDialog>
 
 
 using namespace std;
@@ -237,64 +239,67 @@ void Backend::toClipboard(const std::string &s)
 
 void Backend::print_all_data()
 {
-    const QString fileName("C://Users//Alexander//Desktop//stud//Lab_2//file.pdf");
-    QPdfWriter pdfWriter(fileName);
-    pdfWriter.setPageSize(QPageSize(QPageSize::A4));
+    QPrinter printer;
+    QPrintDialog dialog(&printer, 0);
+    if (dialog.exec() == QDialog::Accepted) {
+        printer.outputFileName();
+        printer.setPageSize(QPageSize(QPageSize::A4));
 
-    QPainter painter(&pdfWriter);
-    painter.setPen(QPen(Qt::black, 2));
-    painter.drawLine(400, 700, 9000, 700);
+        QPainter painter(&printer);
+        painter.setPen(QPen(Qt::black, 1));
+        painter.drawLine(40, 70, 750, 70);
 
-    QFont font("Times New Roman", 14);
-    painter.setFont(font);
+        QFont font("Times New Roman", 14);
+        painter.setFont(font);
 
-    QString login;
-    QString pass;
+        QString login;
+        QString pass;
 
-    painter.drawText(500, 500, "Ресурс");
-    painter.drawText(3000, 500, "Логин");
-    painter.drawText(6100, 500, "Пароль");
+        painter.drawText(50, 50, "Ресурс");
+        painter.drawText(300, 50, "Логин");
+        painter.drawText(580, 50, "Пароль");
 
-    QJsonArray jsonArray = json["urls"].toArray();
-    for (int i=0; i < jsonArray.count(); i++){
-        int count = i % 24;
-        if (i % 24 == 0 && i != 0){
-            pdfWriter.newPage();
-            painter.drawText(500, 500, "Ресурс");
-            painter.drawText(3000, 500, "Логин");
-            painter.drawText(6100, 500, "Пароль");
-            painter.drawLine(400, 700, 9000, 700);
+        QJsonArray jsonArray = json["urls"].toArray();
+        for (int i=0; i < jsonArray.count(); i++){
+            int count = i % 24;
+            if (i % 24 == 0 && i != 0){
+                printer.newPage();
+                painter.drawText(50, 50, "Ресурс");
+                painter.drawText(300, 50, "Логин");
+                painter.drawText(580, 50, "Пароль");
+                painter.drawLine(40, 70, 750, 70);
+            }
+
+            QString site = jsonArray[i].toString();
+            QJsonObject object_site = json[site].toObject();
+
+            login = object_site["login"].toString();
+            unsigned char *cipher_login = qstr_to_unchar(login),
+                    source_login[128];
+
+            crypt_data(cipher_login, source_login, 0, md);
+
+            login = unchar_to_qstr((char*)source_login);
+            source_login[0] = '\0';
+
+            pass = object_site["password"].toString();
+            unsigned char *cipher_pass = qstr_to_unchar(pass),
+                    source_pass[128];
+
+            crypt_data(cipher_pass, source_pass, 0, md);
+
+            pass = unchar_to_qstr((char*)source_pass);
+            source_pass[0] = '\0';
+
+            painter.drawLine(40, (count+2)*50+20, 750, (count+2)*50+20);
+
+            painter.drawText(50,(count+2)*50, site);
+            painter.drawText(300,(count+2)*50, login);
+            painter.drawText(580,(count+2)*50, pass);
+
+            login.clear();
+            pass.clear();
         }
-
-        QString site = jsonArray[i].toString();
-        QJsonObject object_site = json[site].toObject();
-
-        login = object_site["login"].toString();
-        unsigned char *cipher_login = qstr_to_unchar(login),
-                source_login[128];
-
-        crypt_data(cipher_login, source_login, 0, md);
-
-        login = unchar_to_qstr((char*)source_login);
-        source_login[0] = '\0';
-
-        pass = object_site["password"].toString();
-        unsigned char *cipher_pass = qstr_to_unchar(pass),
-                source_pass[128];
-
-        crypt_data(cipher_pass, source_pass, 0, md);
-
-        pass = unchar_to_qstr((char*)source_pass);
-        source_pass[0] = '\0';
-
-        painter.drawLine(400, (count+2)*500+175, 9000, (count+2)*500+175);
-
-        painter.drawText(500,(count+2)*500, site);
-        painter.drawText(3000,(count+2)*500, login);
-        painter.drawText(6100,(count+2)*500, pass);
-
-        login.clear();
-        pass.clear();
     }
 }
 
