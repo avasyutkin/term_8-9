@@ -93,5 +93,5 @@ DiskId1                 = "PassThrough Device Installation Disk"
 ;Instances specific information.
 DefaultInstance         = "PassThrough Instance"
 Instance1.Name          = "PassThrough Instance"
-Instance1.Altitude      = "145005" ; Приоритет драйвера в дереве
+Instance1.Altitude      = "145005" ; ГЏГ°ГЁГ®Г°ГЁГІГҐГІ Г¤Г°Г Г©ГўГҐГ°Г  Гў Г¤ГҐГ°ГҐГўГҐ
 Instance1.Flags         = 0x0              ; Allow all attachments
